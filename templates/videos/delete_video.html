@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Delete Video - FunTube{% endblock %}
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="yt-form text-center">
+                <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: #ff4444;"></i>
+                <h4 class="mt-3 fw-bold">Delete this video?</h4>
+                <p style="color: var(--yt-text-secondary);">This will permanently delete "{{ video_title }}". This action cannot be undone.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="submit" class="btn btn-primary" style="background: #ff4444; border-color: #ff4444;">Delete</button>
+                        <a href="{% url 'video_detail' object.pk %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

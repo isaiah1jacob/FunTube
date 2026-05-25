@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Register - FunTube{% endblock %}
+{% block content %}
+    <div class="page-header">
+        <h2>Create Account</h2>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="yt-form">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <div style="color: var(--yt-text-secondary); font-size: 0.8rem; margin-top: 4px;">{{ field.help_text }}</div>
+                {% endif %}
+                {% if field.errors %}
+                    <div style="color: #ff4444; font-size: 0.85rem; margin-top: 4px;">{{ field.errors|striptags }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <div class="d-flex gap-2 align-items-center">
+            <button type="submit" class="btn btn-primary">Register</button>
+            <span style="color: var(--yt-text-secondary); font-size: 0.85rem;">or <a href="{% url 'login' %}" style="color: #3ea6ff;">sign in</a></span>
+        </div>
+    </form>
+{% endblock %}

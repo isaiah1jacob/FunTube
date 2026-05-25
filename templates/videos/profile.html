@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}{{ profile_user.username }} - FunTube{% endblock %}
+{% block content %}
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {% if profile_user.profile.profile_picture %}
+                <img src="{{ profile_user.profile.profile_picture.url }}" alt="">
+            {% else %}
+                {{ profile_user.username|first|upper }}
+            {% endif %}
+        </div>
+        <div>
+            <h2 class="fw-bold mb-1">{{ profile_user.username }}</h2>
+            <div style="color: var(--yt-text-secondary); font-size: 0.9rem;">
+                {{ user_videos|length }} video{{ user_videos|length|pluralize }}
+            </div>
+            {% if user == profile_user %}
+                <a href="{% url 'edit_profile' profile_user.username %}" class="nav-btn-sm mt-2 d-inline-block">Edit profile</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <h5 class="fw-bold mb-3">Videos</h5>
+    <div class="row g-3">
+        {% for video in user_videos %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="{% url 'video_detail' video.pk %}" class="video-card">
+                    <div class="thumb-wrap">
+                        {% if video.thumbnail %}
+                            <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}" loading="lazy">
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="card-title" style="font-size: 0.9rem;">{{ video.title }}</div>
+                        <div class="stats">{{ video.views }} views · {{ video.uploaded_at|date:"M j, Y" }}</div>
+                    </div>
+                </a>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-camera-video-off" style="font-size: 2.5rem; color: #555;"></i>
+                <h5 class="mt-2" style="color: var(--yt-text-secondary);">No videos yet</h5>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

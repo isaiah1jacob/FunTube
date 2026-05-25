@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}{{ video.title }} - FunTube{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="video-player-wrap mb-3" style="border-radius: 12px; overflow: hidden; background: #000;">
+                <video controls width="100%" style="display: block; max-height: 70vh;">
+                    <source src="{{ video.file.url }}" type="video/mp4">
+                </video>
+            </div>
+            <h3 class="fw-bold mb-2">{{ video.title }}</h3>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="{% url 'profile' video.uploaded_by.username %}" class="d-flex align-items-center gap-2" style="color: inherit;">
+                        <div class="channel-avatar" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #303030; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0;">
+                            {% if video.uploaded_by.profile.profile_picture %}
+                                <img src="{{ video.uploaded_by.profile.profile_picture.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                {{ video.uploaded_by.username|first|upper }}
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="fw-semibold">{{ video.uploaded_by.username }}</div>
+                            <div style="color: var(--yt-text-secondary); font-size: 0.8rem;">{{ user_video_count }} videos</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    {% if user.is_authenticated %}
+                        <button id="likeBtn" class="like-btn {% if user in video.likes.all %}active{% endif %}" data-video-id="{{ video.pk }}">
+                            <i class="bi {% if user in video.likes.all %}bi-hand-thumbs-up-fill{% else %}bi-hand-thumbs-up{% endif %}"></i>
+                            <span id="likeCount">{{ video.likes.count }}</span>
+                        </button>
+                    {% else %}
+                        <span class="like-btn" style="cursor: default;">
+                            <i class="bi bi-hand-thumbs-up"></i> {{ video.likes.count }}
+                        </span>
+                    {% endif %}
+                    <span style="color: var(--yt-text-secondary); font-size: 0.9rem;">
+                        <span id="viewCount">{{ video.views }}</span> views
+                    </span>
+                </div>
+            </div>
+
+            {% if user == video.uploaded_by %}
+                <div class="d-flex gap-2 mb-3">
+                    <a href="{% url 'edit_video' video.pk %}" class="nav-btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+                    <a href="{% url 'delete_video' video.pk %}" class="nav-btn-sm" style="border-color: #ff4444; color: #ff4444;"><i class="bi bi-trash me-1"></i>Delete</a>
+                </div>
+            {% endif %}
+
+            <div style="background: var(--yt-surface); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                <div style="color: var(--yt-text-secondary); font-size: 0.85rem; margin-bottom: 8px;">{{ video.uploaded_at|date:"F j, Y" }}</div>
+                <p style="margin: 0; white-space: pre-wrap;">{{ video.description }}</p>
+            </div>
+
+            <!-- Comments -->
+            <h5 class="fw-bold mb-3">{{ comments|length }} Comment{{ comments|length|pluralize }}</h5>
+            {% if user.is_authenticated %}
+                <form method="post" class="mb-4 d-flex gap-2">
+                    {% csrf_token %}
+                    <div class="channel-avatar" style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; background: #303030; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0;">
+                        {% if user.profile.profile_picture %}
+                            <img src="{{ user.profile.profile_picture.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            {{ user.username|first|upper }}
+                        {% endif %}
+                    </div>
+                    <div style="flex: 1;">
+                        {{ comment_form.content }}
+                        <div class="mt-2">
+                            <button type="submit" class="nav-btn-sm primary">Comment</button>
+                        </div>
+                    </div>
+                </form>
+            {% else %}
+                <p style="color: var(--yt-text-secondary); margin-bottom: 24px;"><a href="{% url 'login' %}" style="color: #3ea6ff;">Login</a> to leave a comment.</p>
+            {% endif %}
+
+            {% for comment in comments %}
+                <div class="d-flex gap-2 mb-3">
+                    <div class="channel-avatar" style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; background: #303030; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0;">
+                        {% if comment.user.profile.profile_picture %}
+                            <img src="{{ comment.user.profile.profile_picture.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            {{ comment.user.username|first|upper }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div style="font-size: 0.85rem;"><strong>{{ comment.user.username }}</strong> <span style="color: var(--yt-text-secondary);">{{ comment.created_at|timesince }} ago</span></div>
+                        <p style="margin: 4px 0;">{{ comment.content }}</p>
+                    </div>
+                </div>
+            {% empty %}
+                <p style="color: var(--yt-text-secondary);">No comments yet.</p>
+            {% endfor %}
+        </div>
+        <div class="col-lg-4">
+            {% if video.thumbnail %}
+                <div style="border-radius: 12px; overflow: hidden; background: #1a1a1a; margin-bottom: 16px;">
+                    <img src="{{ video.thumbnail.url }}" alt="Thumbnail" style="width: 100%; display: block;">
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const likeBtn = document.getElementById('likeBtn');
+        if (likeBtn) {
+            likeBtn.addEventListener('click', function () {
+                const pk = this.dataset.videoId;
+                fetch('/video/' + pk + '/like/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('likeCount').textContent = data.count;
+                    likeBtn.classList.toggle('active', data.liked);
+                    const icon = likeBtn.querySelector('i');
+                    icon.className = data.liked ? 'bi bi-hand-thumbs-up-fill' : 'bi bi-hand-thumbs-up';
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

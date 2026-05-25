@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}My Dashboard - FunTube{% endblock %}
+{% block content %}
+    <div class="page-header">
+        <h2>My Videos</h2>
+        <a href="{% url 'upload' %}" class="nav-btn-sm primary"><i class="bi bi-plus-lg me-1"></i>Upload new</a>
+    </div>
+
+    <div class="row g-3">
+        {% for video in videos %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="video-card">
+                    <a href="{% url 'video_detail' video.pk %}" class="d-block">
+                        <div class="thumb-wrap">
+                            {% if video.thumbnail %}
+                                <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}" loading="lazy">
+                            {% endif %}
+                        </div>
+                    </a>
+                    <div class="card-body">
+                        <a href="{% url 'video_detail' video.pk %}">
+                            <div class="card-title" style="font-size: 0.9rem;">{{ video.title }}</div>
+                        </a>
+                        <div class="stats mb-2">{{ video.views }} views · {{ video.uploaded_at|date:"M j, Y" }}</div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'edit_video' video.pk %}" class="nav-btn-sm" style="font-size: 0.75rem; padding: 4px 10px;">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <a href="{% url 'delete_video' video.pk %}" class="nav-btn-sm" style="font-size: 0.75rem; padding: 4px 10px; border-color: #ff4444; color: #ff4444;">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-camera-video-off" style="font-size: 3rem; color: #555;"></i>
+                <h4 class="mt-3" style="color: var(--yt-text-secondary);">You haven't uploaded any videos yet</h4>
+                <a href="{% url 'upload' %}" class="nav-btn-sm primary mt-3 d-inline-block">Upload your first video</a>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+        <nav class="mt-4 d-flex justify-content-center">
+            <ul class="pagination pagination-sm">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1" style="background: var(--yt-surface); border-color: #303030; color: var(--yt-text);">&laquo;&laquo;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" style="background: var(--yt-surface); border-color: #303030; color: var(--yt-text);">&laquo;</a>
+                    </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}" style="{% if num == page_obj.number %}background: var(--yt-red); border-color: var(--yt-red); color: #fff;{% else %}background: var(--yt-surface); border-color: #303030; color: var(--yt-text);{% endif %}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" style="background: var(--yt-surface); border-color: #303030; color: var(--yt-text);">&raquo;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" style="background: var(--yt-surface); border-color: #303030; color: var(--yt-text);">&raquo;&raquo;</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% endblock %}
